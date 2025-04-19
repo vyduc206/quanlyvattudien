@@ -1,0 +1,206 @@
+{% extends 'layout.html' %}
+
+{% block title %}Báo cáo nhập xuất - Quản lý vật tư điện{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('index') }}">Trang chủ</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('bao_cao.index') }}">Báo cáo</a></li>
+<li class="breadcrumb-item active">Báo cáo nhập xuất</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title"><i class="fas fa-filter me-2"></i>Bộ lọc thời gian</h5>
+        </div>
+        <div class="card-body">
+            <form action="{{ url_for('bao_cao.nhap_xuat') }}" method="get">
+                <div class="row">
+                    <div class="col-md-5">
+                        <label for="ngay_bat_dau" class="form-label">Từ ngày</label>
+                        <input type="date" class="form-control" id="ngay_bat_dau" name="ngay_bat_dau" value="{{ ngay_bat_dau }}">
+                    </div>
+                    <div class="col-md-5">
+                        <label for="ngay_ket_thuc" class="form-label">Đến ngày</label>
+                        <input type="date" class="form-control" id="ngay_ket_thuc" name="ngay_ket_thuc" value="{{ ngay_ket_thuc }}">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-2"></i>Lọc
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-arrow-circle-down me-2"></i>Tổng quan nhập kho</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-muted">Số phiếu nhập</h6>
+                            <h2>{{ tong_nhap.so_phieu or 0 }}</h2>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-muted">Tổng giá trị</h6>
+                            <h2>{{ '{:,.0f}'.format(tong_nhap.tong_tien or 0) }} đ</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-arrow-circle-up me-2"></i>Tổng quan xuất kho</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-muted">Số phiếu xuất</h6>
+                            <h2>{{ tong_xuat.so_phieu or 0 }}</h2>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-muted">Tổng giá trị</h6>
+                            <h2>{{ '{:,.0f}'.format(tong_xuat.tong_tien or 0) }} đ</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title"><i class="fas fa-chart-line me-2"></i>Biểu đồ nhập xuất</h5>
+        </div>
+        <div class="card-body">
+            <canvas id="transactionChart" height="300"></canvas>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="fas fa-arrow-circle-down me-2"></i>Top sản phẩm nhập nhiều nhất</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th>Số lượng</th>
+                                    <th>Giá trị</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if san_pham_nhap_nhieu %}
+                                    {% for sp in san_pham_nhap_nhieu %}
+                                    <tr>
+                                        <td>
+                                            <a href="{{ url_for('san_pham.chi_tiet', id=sp.id) }}">
+                                                {{ sp.ten }}
+                                            </a>
+                                        </td>
+                                        <td>{{ sp.tong_so_luong }}</td>
+                                        <td>{{ '{:,.0f}'.format(sp.tong_tien) }} đ</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="3" class="text-center">Không có dữ liệu</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="fas fa-arrow-circle-up me-2"></i>Top sản phẩm xuất nhiều nhất</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th>Số lượng</th>
+                                    <th>Giá trị</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if san_pham_xuat_nhieu %}
+                                    {% for sp in san_pham_xuat_nhieu %}
+                                    <tr>
+                                        <td>
+                                            <a href="{{ url_for('san_pham.chi_tiet', id=sp.id) }}">
+                                                {{ sp.ten }}
+                                            </a>
+                                        </td>
+                                        <td>{{ sp.tong_so_luong }}</td>
+                                        <td>{{ '{:,.0f}'.format(sp.tong_tien) }} đ</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="3" class="text-center">Không có dữ liệu</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Fetch dữ liệu biểu đồ từ API
+    fetch('{{ url_for('bao_cao.du_lieu_bieu_do') }}?loai=nhap-xuat')
+        .then(response => response.json())
+        .then(data => {
+            // Vẽ biểu đồ
+            const ctx = document.getElementById('transactionChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: data.datasets
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Giá trị (VNĐ)'
+                            }
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => console.error('Error:', error));
+});
+</script>
+{% endblock %}

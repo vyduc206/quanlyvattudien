@@ -1,0 +1,408 @@
+{% extends 'layout.html' %}
+
+{% block title %}Tạo phiếu nhập kho - Quản lý vật tư điện{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('index') }}">Trang chủ</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('nhap_kho.index') }}">Phiếu nhập kho</a></li>
+<li class="breadcrumb-item active">Tạo phiếu nhập</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title"><i class="fas fa-file-import me-2"></i>Tạo phiếu nhập kho</h5>
+        </div>
+        <div class="card-body">
+            <form id="phieu-nhap-form" action="{{ url_for('nhap_kho.them') }}" method="post">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="nha_cung_cap_id" class="form-label">Nhà cung cấp</label>
+                            <select class="form-select" id="nha_cung_cap_id" name="nha_cung_cap_id">
+                                <option value="">-- Không có nhà cung cấp --</option>
+                                {% for ncc in nha_cung_cap_list %}
+                                <option value="{{ ncc.id }}">{{ ncc.ten }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="ngay_nhap" class="form-label">Ngày nhập</label>
+                            <input type="date" class="form-control" id="ngay_nhap" name="ngay_nhap" 
+                                   value="{{ now.strftime('%Y-%m-%d') }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="ghi_chu" class="form-label">Ghi chú</label>
+                    <textarea class="form-control" id="ghi_chu" name="ghi_chu" rows="2"></textarea>
+                </div>
+                
+                <!-- Chi tiết phiếu nhập -->
+                <div class="card mb-3">
+                    <div class="card-header bg-primary-subtle">
+                        <h6 class="card-title mb-0">Chi tiết phiếu nhập</h6>
+                    </div>
+                    <div class="card-body">
+                        <!-- Quét mã vạch -->
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <label class="form-label mb-0 me-2">Quét mã vạch</label>
+                                <button type="button" id="start-scan-btn" class="btn btn-sm btn-primary me-2">
+                                    <i class="fas fa-barcode me-1"></i>Bật camera
+                                </button>
+                                <button type="button" id="stop-scan-btn" class="btn btn-sm btn-danger" style="display: none;">
+                                    <i class="fas fa-times me-1"></i>Tắt camera
+                                </button>
+                            </div>
+                            <div class="camera-container mb-2" style="display: none;">
+                                <video id="camera-video" class="camera-video" autoplay></video>
+                                <canvas id="camera-canvas" class="camera-canvas"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- Thêm sản phẩm -->
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="card-title mb-0">Thêm sản phẩm</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="san_pham_id" class="form-label">Chọn sản phẩm</label>
+                                            <select class="form-select" id="san_pham_id">
+                                                <option value="">-- Chọn sản phẩm --</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group mb-3">
+                                            <label for="so_luong" class="form-label">Số lượng</label>
+                                            <input type="number" class="form-control" id="so_luong" min="1" value="1">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group mb-3">
+                                            <label for="don_gia" class="form-label">Đơn giá (VNĐ)</label>
+                                            <input type="text" class="form-control currency-input" id="don_gia" value="0">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <button type="button" id="add-product-btn" class="btn btn-success">
+                                        <i class="fas fa-plus me-2"></i>Thêm sản phẩm
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Danh sách sản phẩm đã thêm -->
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="product-table">
+                                <thead>
+                                    <tr>
+                                        <th width="50">STT</th>
+                                        <th>Mã SP</th>
+                                        <th>Tên sản phẩm</th>
+                                        <th>Đơn vị tính</th>
+                                        <th width="100">Số lượng</th>
+                                        <th width="150">Đơn giá</th>
+                                        <th width="150">Thành tiền</th>
+                                        <th width="50">Xóa</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="product-list">
+                                    <tr id="empty-row">
+                                        <td colspan="8" class="text-center">Chưa có sản phẩm nào</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="6" class="text-end fw-bold">Tổng cộng:</td>
+                                        <td class="fw-bold" id="total-amount">0đ</td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        
+                        <!-- Hidden input for chi tiết -->
+                        <input type="hidden" id="chi_tiet" name="chi_tiet" value="[]">
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{{ url_for('nhap_kho.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Quay lại
+                    </a>
+                    <button type="submit" id="save-btn" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Lưu phiếu nhập
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/barcode.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Khởi tạo quét mã vạch
+        initBarcodeScanner('camera-video', 'camera-canvas', null, 'start-scan-btn', 'stop-scan-btn');
+        
+        // Hiển thị camera khi bấm nút
+        document.getElementById('start-scan-btn').addEventListener('click', function() {
+            document.querySelector('.camera-container').style.display = 'block';
+        });
+        
+        document.getElementById('stop-scan-btn').addEventListener('click', function() {
+            document.querySelector('.camera-container').style.display = 'none';
+        });
+        
+        // Danh sách sản phẩm
+        let products = [];
+        let productList = [];
+        
+        // Lấy danh sách sản phẩm từ API
+        fetch('/nhap-kho/get-san-pham')
+            .then(response => response.json())
+            .then(data => {
+                products = data;
+                const selectElement = document.getElementById('san_pham_id');
+                
+                // Xóa tất cả option hiện tại trừ option đầu tiên
+                while (selectElement.options.length > 1) {
+                    selectElement.remove(1);
+                }
+                
+                // Thêm các option mới
+                products.forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = product.id;
+                    option.text = `${product.ten} ${product.ma_vach ? '(' + product.ma_vach + ')' : ''}`;
+                    selectElement.add(option);
+                });
+            })
+            .catch(error => console.error('Lỗi khi lấy danh sách sản phẩm:', error));
+        
+        // Tự động điền đơn giá khi chọn sản phẩm
+        document.getElementById('san_pham_id').addEventListener('change', function() {
+            const productId = this.value;
+            if (!productId) return;
+            
+            const product = products.find(p => p.id == productId);
+            if (product) {
+                document.getElementById('don_gia').value = formatCurrency(product.gia_nhap);
+            }
+        });
+        
+        // Thêm sản phẩm vào danh sách
+        document.getElementById('add-product-btn').addEventListener('click', function() {
+            const productId = document.getElementById('san_pham_id').value;
+            const quantity = parseInt(document.getElementById('so_luong').value);
+            const priceText = document.getElementById('don_gia').value;
+            
+            if (!productId) {
+                alert('Vui lòng chọn sản phẩm!');
+                return;
+            }
+            
+            if (!quantity || quantity <= 0) {
+                alert('Số lượng phải lớn hơn 0!');
+                return;
+            }
+            
+            // Chuyển đổi giá từ định dạng tiền tệ sang số
+            const price = parseCurrency(priceText);
+            
+            const product = products.find(p => p.id == productId);
+            if (!product) {
+                alert('Sản phẩm không hợp lệ!');
+                return;
+            }
+            
+            // Kiểm tra xem sản phẩm đã có trong danh sách chưa
+            const existingIndex = productList.findIndex(item => item.san_pham_id == productId);
+            
+            if (existingIndex >= 0) {
+                // Cập nhật số lượng và đơn giá nếu sản phẩm đã tồn tại
+                productList[existingIndex].so_luong += quantity;
+                productList[existingIndex].don_gia = price;
+                productList[existingIndex].thanh_tien = productList[existingIndex].so_luong * price;
+            } else {
+                // Thêm sản phẩm mới vào danh sách
+                productList.push({
+                    san_pham_id: product.id,
+                    ten: product.ten,
+                    ma_vach: product.ma_vach,
+                    don_vi_tinh: product.don_vi_tinh,
+                    so_luong: quantity,
+                    don_gia: price,
+                    thanh_tien: quantity * price
+                });
+            }
+            
+            // Cập nhật giao diện
+            renderProductList();
+            
+            // Reset form
+            document.getElementById('san_pham_id').value = '';
+            document.getElementById('so_luong').value = '1';
+            document.getElementById('don_gia').value = '0';
+        });
+        
+        // Tìm sản phẩm theo mã vạch
+        window.findProductByBarcode = function(barcode) {
+            fetch(`/nhap-kho/get-san-pham-by-barcode?ma_vach=${encodeURIComponent(barcode)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const product = data.san_pham;
+                        addProductToPhieuNhap(product);
+                    } else {
+                        showAlert(data.message, 'warning');
+                    }
+                })
+                .catch(error => {
+                    console.error('Lỗi khi tìm sản phẩm:', error);
+                    showAlert('Đã xảy ra lỗi khi tìm sản phẩm', 'danger');
+                });
+        };
+        
+        // Thêm sản phẩm vào phiếu nhập từ dữ liệu quét mã vạch
+        window.addProductToPhieuNhap = function(product) {
+            if (!product || !product.id) return;
+            
+            // Kiểm tra xem sản phẩm đã có trong danh sách chưa
+            const existingIndex = productList.findIndex(item => item.san_pham_id == product.id);
+            
+            if (existingIndex >= 0) {
+                // Cập nhật số lượng nếu sản phẩm đã tồn tại
+                productList[existingIndex].so_luong += 1;
+                productList[existingIndex].thanh_tien = productList[existingIndex].so_luong * productList[existingIndex].don_gia;
+            } else {
+                // Thêm sản phẩm mới vào danh sách
+                productList.push({
+                    san_pham_id: product.id,
+                    ten: product.ten,
+                    ma_vach: product.ma_vach,
+                    don_vi_tinh: product.don_vi_tinh,
+                    so_luong: 1,
+                    don_gia: product.gia_nhap,
+                    thanh_tien: product.gia_nhap
+                });
+            }
+            
+            // Cập nhật giao diện
+            renderProductList();
+        };
+        
+        // Hiển thị danh sách sản phẩm
+        function renderProductList() {
+            const tableBody = document.getElementById('product-list');
+            const emptyRow = document.getElementById('empty-row');
+            const totalElement = document.getElementById('total-amount');
+            const hiddenInput = document.getElementById('chi_tiet');
+            
+            // Xóa tất cả hàng hiện tại
+            while (tableBody.firstChild) {
+                tableBody.removeChild(tableBody.firstChild);
+            }
+            
+            if (productList.length === 0) {
+                // Hiển thị hàng trống nếu không có sản phẩm
+                tableBody.appendChild(emptyRow);
+                totalElement.textContent = '0đ';
+                hiddenInput.value = '[]';
+                return;
+            }
+            
+            let totalAmount = 0;
+            
+            // Thêm các sản phẩm vào bảng
+            productList.forEach((item, index) => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${item.ma_vach || ''}</td>
+                    <td>${item.ten}</td>
+                    <td>${item.don_vi_tinh || ''}</td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm quantity-input" 
+                               data-index="${index}" value="${item.so_luong}" min="1">
+                    </td>
+                    <td>${formatCurrency(item.don_gia)}đ</td>
+                    <td>${formatCurrency(item.thanh_tien)}đ</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-danger remove-btn" data-index="${index}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+                totalAmount += item.thanh_tien;
+            });
+            
+            // Cập nhật tổng tiền
+            totalElement.textContent = formatCurrency(totalAmount) + 'đ';
+            
+            // Cập nhật input ẩn
+            hiddenInput.value = JSON.stringify(productList);
+            
+            // Xử lý sự kiện thay đổi số lượng
+            document.querySelectorAll('.quantity-input').forEach(input => {
+                input.addEventListener('change', function() {
+                    const index = this.getAttribute('data-index');
+                    const newQuantity = parseInt(this.value);
+                    
+                    if (newQuantity <= 0) {
+                        this.value = 1;
+                        return;
+                    }
+                    
+                    // Cập nhật số lượng và thành tiền
+                    productList[index].so_luong = newQuantity;
+                    productList[index].thanh_tien = newQuantity * productList[index].don_gia;
+                    
+                    // Cập nhật lại giao diện
+                    renderProductList();
+                });
+            });
+            
+            // Xử lý sự kiện xóa sản phẩm
+            document.querySelectorAll('.remove-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    productList.splice(index, 1);
+                    renderProductList();
+                });
+            });
+        }
+        
+        // Kiểm tra trước khi submit form
+        document.getElementById('phieu-nhap-form').addEventListener('submit', function(e) {
+            if (productList.length === 0) {
+                e.preventDefault();
+                alert('Vui lòng thêm ít nhất một sản phẩm vào phiếu nhập!');
+                return false;
+            }
+            return true;
+        });
+        
+        // Xử lý định dạng tiền tệ
+        const donGiaInput = document.getElementById('don_gia');
+        donGiaInput.addEventListener('input', function() {
+            var value = this.value.replace(/\D/g, '');
+            this.value = formatCurrency(value);
+        });
+    });
+</script>
+{% endblock %}

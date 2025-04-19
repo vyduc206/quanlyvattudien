@@ -1,0 +1,214 @@
+{% extends 'layout.html' %}
+
+{% block title %}Danh sách sản phẩm - Quản lý vật tư điện{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('index') }}">Trang chủ</a></li>
+<li class="breadcrumb-item active">Sản phẩm</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Danh sách sản phẩm</h1>
+        <a href="{{ url_for('san_pham.them') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Thêm sản phẩm
+        </a>
+    </div>
+    
+    <!-- Bộ lọc -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0"><i class="fas fa-filter me-2"></i>Bộ lọc</h5>
+        </div>
+        <div class="card-body">
+            <form action="{{ url_for('san_pham.index') }}" method="get" class="search-form">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label for="search" class="form-label">Tìm kiếm</label>
+                        <input type="text" class="form-control" id="search" name="search" 
+                               value="{{ search }}" placeholder="Tên sản phẩm, mã vạch">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="danh_muc_id" class="form-label">Danh mục</label>
+                        <select class="form-select" id="danh_muc_id" name="danh_muc_id">
+                            <option value="">Tất cả danh mục</option>
+                            {% for dm in danh_muc_list %}
+                            <option value="{{ dm.id }}" {% if danh_muc_id == dm.id %}selected{% endif %}>
+                                {{ dm.ten }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="nha_cung_cap_id" class="form-label">Nhà cung cấp</label>
+                        <select class="form-select" id="nha_cung_cap_id" name="nha_cung_cap_id">
+                            <option value="">Tất cả nhà cung cấp</option>
+                            {% for ncc in nha_cung_cap_list %}
+                            <option value="{{ ncc.id }}" {% if nha_cung_cap_id == ncc.id %}selected{% endif %}>
+                                {{ ncc.ten }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="trang_thai" class="form-label">Trạng thái</label>
+                        <select class="form-select" id="trang_thai" name="trang_thai">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="true" {% if trang_thai == 'true' %}selected{% endif %}>Đang sử dụng</option>
+                            <option value="false" {% if trang_thai == 'false' %}selected{% endif %}>Không sử dụng</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="sort_by" class="form-label">Sắp xếp theo</label>
+                        <div class="input-group">
+                            <select class="form-select" id="sort_by" name="sort_by">
+                                <option value="id" {% if sort_by == 'id' %}selected{% endif %}>Mã sản phẩm</option>
+                                <option value="ten" {% if sort_by == 'ten' %}selected{% endif %}>Tên sản phẩm</option>
+                                <option value="gia" {% if sort_by == 'gia' %}selected{% endif %}>Giá bán</option>
+                                <option value="so_luong" {% if sort_by == 'so_luong' %}selected{% endif %}>Số lượng tồn</option>
+                            </select>
+                            <select class="form-select" id="sort_dir" name="sort_dir">
+                                <option value="asc" {% if sort_dir == 'asc' %}selected{% endif %}>Tăng dần</option>
+                                <option value="desc" {% if sort_dir == 'desc' %}selected{% endif %}>Giảm dần</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mt-4">
+                        <div class="d-flex justify-content-end">
+                            <button type="reset" class="btn btn-secondary me-2">
+                                <i class="fas fa-redo me-2"></i>Đặt lại
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search me-2"></i>Tìm kiếm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Danh sách sản phẩm -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0"><i class="fas fa-list me-2"></i>Danh sách sản phẩm</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th width="80">Mã SP</th>
+                            <th width="100">Hình ảnh</th>
+                            <th>Tên sản phẩm</th>
+                            <th>Mã vạch</th>
+                            <th>Danh mục</th>
+                            <th>Đơn vị tính</th>
+                            <th>Đơn giá</th>
+                            <th>Tồn kho</th>
+                            <th>Trạng thái</th>
+                            <th width="150">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if san_pham_list %}
+                            {% for sp in san_pham_list %}
+                            <tr>
+                                <td>{{ sp.id }}</td>
+                                <td>
+                                    {% if sp.hinh_anh %}
+                                    <img src="{{ sp.hinh_anh }}" alt="{{ sp.ten }}" class="img-thumbnail" width="80">
+                                    {% else %}
+                                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9IiNlZWUiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBmaWxsPSIjYWFhIj5ObyBJbWFnZTwvdGV4dD48L3N2Zz4=" 
+                                         alt="Không có hình ảnh" class="img-thumbnail" width="80">
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('san_pham.chi_tiet', id=sp.id) }}">{{ sp.ten }}</a>
+                                    {% if sp.so_luong_ton < sp.so_luong_toi_thieu %}
+                                    <span class="badge bg-warning ms-1" title="Cần nhập thêm">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ sp.ma_vach or '' }}</td>
+                                <td>{{ sp.danh_muc.ten if sp.danh_muc else '' }}</td>
+                                <td>{{ sp.don_vi_tinh or '' }}</td>
+                                <td>{{ "{:,.0f}".format(sp.gia_ban) }}đ</td>
+                                <td class="{% if sp.so_luong_ton == 0 %}text-danger fw-bold{% endif %}">
+                                    {{ sp.so_luong_ton }}
+                                </td>
+                                <td>
+                                    {% if sp.trang_thai %}
+                                    <span class="badge bg-success">Đang sử dụng</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Không sử dụng</span>
+                                    {% endif %}
+                                </td>
+                                <td class="table-actions">
+                                    <a href="{{ url_for('san_pham.chi_tiet', id=sp.id) }}" class="btn btn-sm btn-info" title="Chi tiết">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('san_pham.sua', id=sp.id) }}" class="btn btn-sm btn-primary" title="Sửa">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% if sp.trang_thai %}
+                                    <form action="{{ url_for('san_pham.xoa', id=sp.id) }}" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-danger btn-delete-confirm" title="Vô hiệu hóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="10" class="text-center py-3">Không tìm thấy sản phẩm nào</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Phân trang -->
+        {% if pagination.pages > 1 %}
+        <div class="card-footer">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item {% if pagination.page == 1 %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('san_pham.index', page=pagination.prev_num, search=search, danh_muc_id=danh_muc_id, nha_cung_cap_id=nha_cung_cap_id, trang_thai=trang_thai, sort_by=sort_by, sort_dir=sort_dir) }}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    
+                    {% for page in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page %}
+                            <li class="page-item {% if page == pagination.page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('san_pham.index', page=page, search=search, danh_muc_id=danh_muc_id, nha_cung_cap_id=nha_cung_cap_id, trang_thai=trang_thai, sort_by=sort_by, sort_dir=sort_dir) }}">
+                                    {{ page }}
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <li class="page-item {% if pagination.page == pagination.pages %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('san_pham.index', page=pagination.next_num, search=search, danh_muc_id=danh_muc_id, nha_cung_cap_id=nha_cung_cap_id, trang_thai=trang_thai, sort_by=sort_by, sort_dir=sort_dir) }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends 'layout.html' %}
+
+{% block title %}Báo cáo tồn kho - Quản lý vật tư điện{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('index') }}">Trang chủ</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('bao_cao.index') }}">Báo cáo</a></li>
+<li class="breadcrumb-item active">Báo cáo tồn kho</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="fas fa-boxes me-2"></i>Báo cáo tồn kho theo danh mục</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="inventoryChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Sản phẩm cần nhập thêm</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Mã sản phẩm</th>
+                                    <th>Tên sản phẩm</th>
+                                    <th>Danh mục</th>
+                                    <th>Tồn kho</th>
+                                    <th>Tối thiểu</th>
+                                    <th>Cần nhập</th>
+                                    <th>Giá nhập</th>
+                                    <th>Thành tiền</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if san_pham_canh_bao %}
+                                    {% for sp in san_pham_canh_bao %}
+                                    <tr>
+                                        <td>{% if sp.ma_vach %}{{ sp.ma_vach }}{% else %}<span class="text-muted">Chưa có</span>{% endif %}</td>
+                                        <td><a href="{{ url_for('san_pham.chi_tiet', id=sp.id) }}">{{ sp.ten }}</a></td>
+                                        <td>{% if sp.danh_muc %}{{ sp.danh_muc.ten }}{% else %}<span class="text-muted">Chưa phân loại</span>{% endif %}</td>
+                                        <td class="text-danger fw-bold">{{ sp.so_luong_ton }}</td>
+                                        <td>{{ sp.so_luong_toi_thieu }}</td>
+                                        <td class="text-primary fw-bold">{{ sp.so_luong_toi_thieu - sp.so_luong_ton }}</td>
+                                        <td>{{ '{:,.0f}'.format(sp.gia_nhap) }} đ</td>
+                                        <td>{{ '{:,.0f}'.format((sp.so_luong_toi_thieu - sp.so_luong_ton) * sp.gia_nhap) }} đ</td>
+                                        <td>
+                                            <a href="{{ url_for('nhap_kho.them', san_pham_id=sp.id) }}" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-plus-circle"></i> Nhập hàng
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="9" class="text-center py-3">
+                                            <div class="alert alert-success mb-0">
+                                                <i class="fas fa-check-circle me-2"></i>Tất cả sản phẩm đều có số lượng tồn kho hợp lý
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Dữ liệu cho biểu đồ
+    const ctx = document.getElementById('inventoryChart').getContext('2d');
+    
+    // Labels và dữ liệu từ server
+    const labels = [{% for dm in danh_muc_list %}'{{ dm.ten }}',{% endfor %}];
+    const soLuong = [{% for dm in danh_muc_list %}{{ dm.tong_so_luong|default(0) }},{% endfor %}];
+    const giaTri = [{% for dm in danh_muc_list %}{{ dm.tong_gia_tri|default(0) }},{% endfor %}];
+    
+    const backgroundColors = [
+        'rgba(54, 162, 235, 0.5)',
+        'rgba(255, 99, 132, 0.5)',
+        'rgba(255, 206, 86, 0.5)',
+        'rgba(75, 192, 192, 0.5)',
+        'rgba(153, 102, 255, 0.5)',
+        'rgba(255, 159, 64, 0.5)',
+        'rgba(199, 199, 199, 0.5)'
+    ];
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Số lượng tồn kho',
+                    data: soLuong,
+                    backgroundColor: backgroundColors,
+                    borderColor: backgroundColors.map(color => color.replace('0.5', '1')),
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Số lượng'
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

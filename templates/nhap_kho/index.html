@@ -1,0 +1,193 @@
+{% extends 'layout.html' %}
+
+{% block title %}Phiếu nhập kho - Quản lý vật tư điện{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('index') }}">Trang chủ</a></li>
+<li class="breadcrumb-item active">Phiếu nhập kho</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Phiếu nhập kho</h1>
+        <a href="{{ url_for('nhap_kho.them') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Tạo phiếu nhập
+        </a>
+    </div>
+    
+    <!-- Bộ lọc -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0"><i class="fas fa-filter me-2"></i>Bộ lọc</h5>
+        </div>
+        <div class="card-body">
+            <form action="{{ url_for('nhap_kho.index') }}" method="get" class="search-form">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label for="search" class="form-label">Tìm kiếm</label>
+                        <input type="text" class="form-control" id="search" name="search" 
+                               value="{{ search }}" placeholder="Mã phiếu">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="nha_cung_cap_id" class="form-label">Nhà cung cấp</label>
+                        <select class="form-select" id="nha_cung_cap_id" name="nha_cung_cap_id">
+                            <option value="">Tất cả nhà cung cấp</option>
+                            {% for ncc in nha_cung_cap_list %}
+                            <option value="{{ ncc.id }}" {% if nha_cung_cap_id == ncc.id %}selected{% endif %}>
+                                {{ ncc.ten }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="trang_thai" class="form-label">Trạng thái</label>
+                        <select class="form-select" id="trang_thai" name="trang_thai">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="da_nhap" {% if trang_thai == 'da_nhap' %}selected{% endif %}>Đã nhập</option>
+                            <option value="cho_duyet" {% if trang_thai == 'cho_duyet' %}selected{% endif %}>Chờ duyệt</option>
+                            <option value="huy_bo" {% if trang_thai == 'huy_bo' %}selected{% endif %}>Đã hủy</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="sort_by" class="form-label">Sắp xếp theo</label>
+                        <div class="input-group">
+                            <select class="form-select" id="sort_by" name="sort_by">
+                                <option value="ngay_nhap" {% if sort_by == 'ngay_nhap' %}selected{% endif %}>Ngày nhập</option>
+                                <option value="ma_phieu" {% if sort_by == 'ma_phieu' %}selected{% endif %}>Mã phiếu</option>
+                                <option value="tong_tien" {% if sort_by == 'tong_tien' %}selected{% endif %}>Tổng tiền</option>
+                            </select>
+                            <select class="form-select" id="sort_dir" name="sort_dir">
+                                <option value="desc" {% if sort_dir == 'desc' %}selected{% endif %}>Giảm dần</option>
+                                <option value="asc" {% if sort_dir == 'asc' %}selected{% endif %}>Tăng dần</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label for="tu_ngay" class="form-label">Từ ngày</label>
+                        <input type="date" class="form-control" id="tu_ngay" name="tu_ngay" value="{{ tu_ngay }}">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="den_ngay" class="form-label">Đến ngày</label>
+                        <input type="date" class="form-control" id="den_ngay" name="den_ngay" value="{{ den_ngay }}">
+                    </div>
+                    <div class="col-md-6 mb-3 d-flex align-items-end justify-content-end">
+                        <button type="reset" class="btn btn-secondary me-2">
+                            <i class="fas fa-redo me-2"></i>Đặt lại
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>Tìm kiếm
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Danh sách phiếu nhập -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0"><i class="fas fa-list me-2"></i>Danh sách phiếu nhập</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Mã phiếu</th>
+                            <th>Ngày nhập</th>
+                            <th>Nhà cung cấp</th>
+                            <th>Người nhập</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th width="150">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if phieu_nhap_list %}
+                            {% for phieu in phieu_nhap_list %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('nhap_kho.chi_tiet', id=phieu.id) }}">{{ phieu.ma_phieu }}</a>
+                                </td>
+                                <td>{{ phieu.ngay_nhap.strftime('%d/%m/%Y') }}</td>
+                                <td>
+                                    {% if phieu.nha_cung_cap %}
+                                    {{ phieu.nha_cung_cap.ten }}
+                                    {% else %}
+                                    <span class="text-muted">Không có</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ phieu.nguoi_dung.ho_ten }}</td>
+                                <td>{{ "{:,.0f}".format(phieu.tong_tien) }}đ</td>
+                                <td>
+                                    {% if phieu.trang_thai == 'da_nhap' %}
+                                    <span class="badge bg-success">Đã nhập</span>
+                                    {% elif phieu.trang_thai == 'cho_duyet' %}
+                                    <span class="badge bg-warning">Chờ duyệt</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Đã hủy</span>
+                                    {% endif %}
+                                </td>
+                                <td class="table-actions">
+                                    <a href="{{ url_for('nhap_kho.chi_tiet', id=phieu.id) }}" class="btn btn-sm btn-info" title="Chi tiết">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('nhap_kho.xuat_excel', id=phieu.id) }}" class="btn btn-sm btn-success" title="Xuất Excel">
+                                        <i class="fas fa-file-excel"></i>
+                                    </a>
+                                    <a href="{{ url_for('nhap_kho.xuat_pdf', id=phieu.id) }}" class="btn btn-sm btn-danger" title="Xuất PDF">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-3">Không tìm thấy phiếu nhập nào</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Phân trang -->
+        {% if pagination.pages > 1 %}
+        <div class="card-footer">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item {% if pagination.page == 1 %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('nhap_kho.index', page=pagination.prev_num, search=search, nha_cung_cap_id=nha_cung_cap_id, trang_thai=trang_thai, tu_ngay=tu_ngay, den_ngay=den_ngay, sort_by=sort_by, sort_dir=sort_dir) }}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    
+                    {% for page in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page %}
+                            <li class="page-item {% if page == pagination.page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('nhap_kho.index', page=page, search=search, nha_cung_cap_id=nha_cung_cap_id, trang_thai=trang_thai, tu_ngay=tu_ngay, den_ngay=den_ngay, sort_by=sort_by, sort_dir=sort_dir) }}">
+                                    {{ page }}
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <li class="page-item {% if pagination.page == pagination.pages %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('nhap_kho.index', page=pagination.next_num, search=search, nha_cung_cap_id=nha_cung_cap_id, trang_thai=trang_thai, tu_ngay=tu_ngay, den_ngay=den_ngay, sort_by=sort_by, sort_dir=sort_dir) }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

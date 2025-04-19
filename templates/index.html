@@ -1,0 +1,259 @@
+{% extends 'layout.html' %}
+
+{% block title %}Trang chủ - Quản lý vật tư điện{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Trang chủ</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Chào mừng đến với Hệ thống Quản lý Vật tư Điện</h1>
+    
+    <div class="row">
+        <!-- Thống kê nhanh -->
+        <div class="col-md-3 mb-4">
+            <div class="card border-primary h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-primary">Tổng số sản phẩm</h5>
+                    <div class="display-4 fw-bold text-center my-3">
+                        <i class="fas fa-box me-2"></i>
+                        {{ san_pham_count|default(0) }}
+                    </div>
+                    <a href="{{ url_for('san_pham.index') }}" class="btn btn-outline-primary mt-2">Xem danh sách</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card border-success h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-success">Phiếu nhập tháng này</h5>
+                    <div class="display-4 fw-bold text-center my-3">
+                        <i class="fas fa-file-import me-2"></i>
+                        {{ nhap_kho_count|default(0) }}
+                    </div>
+                    <a href="{{ url_for('nhap_kho.index') }}" class="btn btn-outline-success mt-2">Xem phiếu nhập</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card border-info h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-info">Phiếu xuất tháng này</h5>
+                    <div class="display-4 fw-bold text-center my-3">
+                        <i class="fas fa-file-export me-2"></i>
+                        {{ xuat_kho_count|default(0) }}
+                    </div>
+                    <a href="{{ url_for('xuat_kho.index') }}" class="btn btn-outline-info mt-2">Xem phiếu xuất</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card border-warning h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-warning">Cần nhập thêm</h5>
+                    <div class="display-4 fw-bold text-center my-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {{ san_pham_thieu_count|default(0) }}
+                    </div>
+                    <a href="{{ url_for('san_pham.kiem_tra_ton_kho') }}" class="btn btn-outline-warning mt-2">Kiểm tra tồn kho</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Thao tác nhanh -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="fas fa-bolt me-2"></i>Thao tác nhanh</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="{{ url_for('san_pham.them') }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                            <i class="fas fa-plus-circle me-3 text-success"></i>
+                            <div>
+                                <strong>Thêm sản phẩm mới</strong>
+                                <p class="mb-0 text-muted small">Thêm sản phẩm vật tư mới vào kho</p>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('nhap_kho.them') }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                            <i class="fas fa-file-import me-3 text-primary"></i>
+                            <div>
+                                <strong>Tạo phiếu nhập kho</strong>
+                                <p class="mb-0 text-muted small">Nhập vật tư mới vào kho</p>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('xuat_kho.them') }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                            <i class="fas fa-file-export me-3 text-info"></i>
+                            <div>
+                                <strong>Tạo phiếu xuất kho</strong>
+                                <p class="mb-0 text-muted small">Xuất vật tư ra khỏi kho</p>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('san_pham.kiem_tra_ton_kho') }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                            <i class="fas fa-exclamation-triangle me-3 text-warning"></i>
+                            <div>
+                                <strong>Kiểm tra tồn kho</strong>
+                                <p class="mb-0 text-muted small">Xem danh sách vật tư cần nhập thêm</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sản phẩm mới nhập gần đây -->
+        <div class="col-md-8 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title"><i class="fas fa-clock me-2"></i>Sản phẩm mới nhập gần đây</h5>
+                    <a href="{{ url_for('nhap_kho.index') }}" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Mã phiếu</th>
+                                    <th>Sản phẩm</th>
+                                    <th>Số lượng</th>
+                                    <th>Ngày nhập</th>
+                                    <th>Đơn giá</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if recent_imports %}
+                                    {% for item in recent_imports %}
+                                    <tr>
+                                        <td>
+                                            <a href="{{ url_for('nhap_kho.chi_tiet', id=item.phieu_nhap.id) }}">
+                                                {{ item.phieu_nhap.ma_phieu }}
+                                            </a>
+                                        </td>
+                                        <td>{{ item.san_pham.ten }}</td>
+                                        <td>{{ item.so_luong }}</td>
+                                        <td>{{ item.phieu_nhap.ngay_nhap.strftime('%d/%m/%Y') }}</td>
+                                        <td>{{ "{:,.0f}".format(item.don_gia) }}đ</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-3">Chưa có dữ liệu nhập kho gần đây</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Phiếu xuất gần đây -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title"><i class="fas fa-file-export me-2"></i>Phiếu xuất gần đây</h5>
+                    <a href="{{ url_for('xuat_kho.index') }}" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Mã phiếu</th>
+                                    <th>Người nhận</th>
+                                    <th>Ngày xuất</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if recent_exports %}
+                                    {% for phieu in recent_exports %}
+                                    <tr>
+                                        <td>
+                                            <a href="{{ url_for('xuat_kho.chi_tiet', id=phieu.id) }}">
+                                                {{ phieu.ma_phieu }}
+                                            </a>
+                                        </td>
+                                        <td>{{ phieu.nguoi_nhan }}</td>
+                                        <td>{{ phieu.ngay_xuat.strftime('%d/%m/%Y') }}</td>
+                                        <td>
+                                            {% if phieu.trang_thai == 'da_xuat' %}
+                                            <span class="badge bg-success">Đã xuất</span>
+                                            {% elif phieu.trang_thai == 'huy_bo' %}
+                                            <span class="badge bg-danger">Đã hủy</span>
+                                            {% else %}
+                                            <span class="badge bg-warning">Chờ duyệt</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center py-3">Chưa có dữ liệu xuất kho gần đây</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sản phẩm tồn kho thấp -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title"><i class="fas fa-exclamation-triangle me-2"></i>Sản phẩm tồn kho thấp</h5>
+                    <a href="{{ url_for('san_pham.kiem_tra_ton_kho') }}" class="btn btn-sm btn-outline-warning">Xem tất cả</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Mã vạch</th>
+                                    <th>Tên sản phẩm</th>
+                                    <th>Tồn kho</th>
+                                    <th>Tối thiểu</th>
+                                    <th>Cần nhập</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if low_stock_products %}
+                                    {% for sp in low_stock_products %}
+                                    <tr>
+                                        <td>{{ sp.ma_vach or '' }}</td>
+                                        <td>
+                                            <a href="{{ url_for('san_pham.chi_tiet', id=sp.id) }}">
+                                                {{ sp.ten }}
+                                            </a>
+                                        </td>
+                                        <td class="{% if sp.so_luong_ton == 0 %}text-danger fw-bold{% endif %}">
+                                            {{ sp.so_luong_ton }}
+                                        </td>
+                                        <td>{{ sp.so_luong_toi_thieu }}</td>
+                                        <td>{{ sp.so_luong_toi_thieu - sp.so_luong_ton }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-3">Không có sản phẩm nào cần nhập thêm</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

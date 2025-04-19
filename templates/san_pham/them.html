@@ -1,0 +1,240 @@
+{% extends 'layout.html' %}
+
+{% block title %}Thêm sản phẩm mới - Quản lý vật tư điện{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('index') }}">Trang chủ</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('san_pham.index') }}">Sản phẩm</a></li>
+<li class="breadcrumb-item active">Thêm sản phẩm mới</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title"><i class="fas fa-plus-circle me-2"></i>Thêm sản phẩm mới</h5>
+        </div>
+        <div class="card-body">
+            <form action="{{ url_for('san_pham.them') }}" method="post">
+                <div class="row">
+                    <!-- Thông tin cơ bản -->
+                    <div class="col-md-8">
+                        <div class="form-group mb-3">
+                            <label for="ten" class="form-label required">Tên sản phẩm</label>
+                            <input type="text" class="form-control" id="ten" name="ten" required>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="ma_vach" class="form-label">Mã vạch</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="ma_vach" name="ma_vach">
+                                        <button type="button" id="start-scan-btn" class="btn btn-primary">
+                                            <i class="fas fa-barcode me-1"></i>Quét
+                                        </button>
+                                        <button type="button" id="stop-scan-btn" class="btn btn-danger" style="display: none;">
+                                            <i class="fas fa-times me-1"></i>Dừng
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="don_vi_tinh" class="form-label">Đơn vị tính</label>
+                                    <input type="text" class="form-control" id="don_vi_tinh" name="don_vi_tinh" 
+                                           placeholder="Cái, Bộ, Mét, Kg,...">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="gia_nhap" class="form-label">Giá nhập (VNĐ)</label>
+                                    <input type="text" class="form-control currency-input" id="gia_nhap" name="gia_nhap" value="0">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="gia_ban" class="form-label">Giá bán (VNĐ)</label>
+                                    <input type="text" class="form-control currency-input" id="gia_ban" name="gia_ban" value="0">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="so_luong_toi_thieu" class="form-label">Số lượng tối thiểu</label>
+                                    <input type="number" class="form-control" id="so_luong_toi_thieu" name="so_luong_toi_thieu" 
+                                           min="0" value="10">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="danh_muc_id" class="form-label">Danh mục</label>
+                                    <select class="form-select" id="danh_muc_id" name="danh_muc_id">
+                                        <option value="">-- Chọn danh mục --</option>
+                                        {% for dm in danh_muc_list %}
+                                        <option value="{{ dm.id }}">{{ dm.ten }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="nha_cung_cap_id" class="form-label">Nhà cung cấp</label>
+                                    <select class="form-select" id="nha_cung_cap_id" name="nha_cung_cap_id">
+                                        <option value="">-- Chọn nhà cung cấp --</option>
+                                        {% for ncc in nha_cung_cap_list %}
+                                        <option value="{{ ncc.id }}">{{ ncc.ten }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="mo_ta" class="form-label">Mô tả</label>
+                            <textarea class="form-control" id="mo_ta" name="mo_ta" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="thong_so_ky_thuat" class="form-label">Thông số kỹ thuật</label>
+                            <textarea class="form-control" id="thong_so_ky_thuat" name="thong_so_ky_thuat" rows="3"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Ảnh và camera -->
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0">Hình ảnh sản phẩm</h6>
+                            </div>
+                            <div class="card-body">
+                                <!-- Camera preview -->
+                                <div class="camera-container mb-3">
+                                    <video id="camera-video" class="camera-video" autoplay></video>
+                                    <canvas id="camera-canvas" class="camera-canvas"></canvas>
+                                    <div id="barcode-preview-container" style="display: none;">
+                                        <img id="barcode-preview" class="img-fluid mb-2" src="" alt="Barcode Preview">
+                                    </div>
+                                </div>
+                                
+                                <!-- Image preview -->
+                                <div class="text-center mb-3">
+                                    <img id="image-preview" class="image-preview" src="" alt="Product Image">
+                                </div>
+                                
+                                <!-- Camera Controls -->
+                                <div class="text-center mb-3">
+                                    <button type="button" id="start-photo-btn" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-camera me-1"></i>Bật camera
+                                    </button>
+                                    <button type="button" id="capture-photo-btn" class="btn btn-sm btn-success" style="display: none;">
+                                        <i class="fas fa-camera me-1"></i>Chụp ảnh
+                                    </button>
+                                    <button type="button" id="stop-photo-btn" class="btn btn-sm btn-danger" style="display: none;">
+                                        <i class="fas fa-times me-1"></i>Tắt camera
+                                    </button>
+                                </div>
+                                
+                                <!-- Image upload -->
+                                <div class="text-center">
+                                    <div class="input-group">
+                                        <input type="file" class="form-control" id="image-upload" accept="image/*">
+                                        <button type="button" id="upload-btn" class="btn btn-outline-secondary">
+                                            <i class="fas fa-upload"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-text">Tải lên hoặc chụp ảnh sản phẩm</div>
+                                </div>
+                                
+                                <!-- Hidden input for image data -->
+                                <input type="hidden" id="hinh_anh" name="hinh_anh">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{{ url_for('san_pham.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Quay lại
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-2"></i>Lưu sản phẩm
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/barcode.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Khởi tạo quét mã vạch
+        initBarcodeScanner('camera-video', 'camera-canvas', 'ma_vach', 'start-scan-btn', 'stop-scan-btn');
+        
+        // Xử lý chụp ảnh sản phẩm
+        const startPhotoBtn = document.getElementById('start-photo-btn');
+        const capturePhotoBtn = document.getElementById('capture-photo-btn');
+        const stopPhotoBtn = document.getElementById('stop-photo-btn');
+        const videoElement = document.getElementById('camera-video');
+        const canvasElement = document.getElementById('camera-canvas');
+        const imagePreview = document.getElementById('image-preview');
+        const imageInput = document.getElementById('hinh_anh');
+        
+        startPhotoBtn.addEventListener('click', function() {
+            startCameraForPhoto('camera-video', 'start-photo-btn', 'capture-photo-btn', 'stop-photo-btn');
+        });
+        
+        capturePhotoBtn.addEventListener('click', function() {
+            captureImage('camera-video', 'camera-canvas', 'image-preview', 'hinh_anh');
+        });
+        
+        stopPhotoBtn.addEventListener('click', function() {
+            stopCameraForPhoto('camera-video', 'start-photo-btn', 'capture-photo-btn', 'stop-photo-btn');
+        });
+        
+        // Xử lý tải ảnh từ máy tính
+        const imageUpload = document.getElementById('image-upload');
+        const uploadBtn = document.getElementById('upload-btn');
+        
+        uploadBtn.addEventListener('click', function() {
+            imageUpload.click();
+        });
+        
+        imageUpload.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                    imageInput.value = e.target.result;
+                }
+                
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+        
+        // Xử lý định dạng tiền tệ
+        const giaNhapInput = document.getElementById('gia_nhap');
+        const giaBanInput = document.getElementById('gia_ban');
+        
+        giaNhapInput.addEventListener('input', function() {
+            var value = this.value.replace(/\D/g, '');
+            this.value = formatCurrency(value);
+        });
+        
+        giaBanInput.addEventListener('input', function() {
+            var value = this.value.replace(/\D/g, '');
+            this.value = formatCurrency(value);
+        });
+    });
+</script>
+{% endblock %}

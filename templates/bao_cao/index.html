@@ -1,0 +1,155 @@
+{% extends 'layout.html' %}
+
+{% block title %}Báo cáo - Quản lý vật tư điện{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('index') }}">Trang chủ</a></li>
+<li class="breadcrumb-item active">Báo cáo</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Báo cáo tổng quan</h1>
+    
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-boxes me-2"></i>Báo cáo tồn kho</h5>
+                </div>
+                <div class="card-body">
+                    <p>Xem thống kê tồn kho theo danh mục và danh sách sản phẩm cần nhập thêm.</p>
+                    <canvas id="inventoryPieChart" height="200"></canvas>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('bao_cao.ton_kho') }}" class="btn btn-primary btn-block">
+                        <i class="fas fa-eye me-2"></i>Xem chi tiết
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-exchange-alt me-2"></i>Báo cáo nhập xuất</h5>
+                </div>
+                <div class="card-body">
+                    <p>Xem thống kê nhập xuất kho theo thời gian và giá trị nhập xuất.</p>
+                    <canvas id="transactionChart" height="200"></canvas>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('bao_cao.nhap_xuat') }}" class="btn btn-primary btn-block">
+                        <i class="fas fa-eye me-2"></i>Xem chi tiết
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Biểu đồ tồn kho
+    const ctxInventory = document.getElementById('inventoryPieChart').getContext('2d');
+    new Chart(ctxInventory, {
+        type: 'doughnut',
+        data: {
+            labels: [{% for dm in danh_muc_list %}'{{ dm.ten }}',{% endfor %}],
+            datasets: [{
+                data: [{% for dm in danh_muc_list %}{{ dm.tong_so_luong|default(0) }},{% endfor %}],
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(255, 99, 132, 0.7)',
+                    'rgba(255, 206, 86, 0.7)',
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(153, 102, 255, 0.7)',
+                    'rgba(255, 159, 64, 0.7)',
+                    'rgba(199, 199, 199, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 99, 132, 1)', 
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)',
+                    'rgba(199, 199, 199, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right',
+                }
+            }
+        }
+    });
+
+    // Biểu đồ nhập xuất
+    fetch('{{ url_for('bao_cao.du_lieu_bieu_do') }}?loai=tong-quan')
+        .then(response => response.json())
+        .then(data => {
+            const ctxTransaction = document.getElementById('transactionChart').getContext('2d');
+            new Chart(ctxTransaction, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: data.datasets
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Dữ liệu mẫu nếu không tải được dữ liệu thật
+            const ctxTransaction = document.getElementById('transactionChart').getContext('2d');
+            new Chart(ctxTransaction, {
+                type: 'line',
+                data: {
+                    labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6'],
+                    datasets: [
+                        {
+                            label: 'Nhập kho',
+                            data: [0, 0, 0, 0, 0, 0],
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Xuất kho',
+                            data: [0, 0, 0, 0, 0, 0],
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        });
+});
+</script>
+{% endblock %}
