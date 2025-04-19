@@ -1,0 +1,50 @@
+{% extends 'layout.html' %}
+
+{% block title %}Thêm hãng sản xuất{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('hang_san_xuat.index') }}">Quản lý hãng sản xuất</a></li>
+            <li class="breadcrumb-item active">Thêm hãng mới</li>
+        </ol>
+    </nav>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">Thêm hãng sản xuất mới</h5>
+        </div>
+        <div class="card-body">
+            {% include 'includes/flash_messages.html' %}
+            
+            <form method="post">
+                <div class="mb-3">
+                    <label for="ten" class="form-label">Tên hãng sản xuất <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="ten" name="ten" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="quoc_gia" class="form-label">Quốc gia</label>
+                    <input type="text" class="form-control" id="quoc_gia" name="quoc_gia">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="website" class="form-label">Website</label>
+                    <input type="url" class="form-control" id="website" name="website" placeholder="https://...">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="mo_ta" class="form-label">Mô tả</label>
+                    <textarea class="form-control" id="mo_ta" name="mo_ta" rows="3"></textarea>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('hang_san_xuat.index') }}" class="btn btn-secondary">Quay lại</a>
+                    <button type="submit" class="btn btn-primary">Lưu hãng sản xuất</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
