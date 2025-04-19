@@ -4,7 +4,7 @@ from datetime import datetime
 
 from flask import Flask, render_template, redirect, url_for, flash, request, session
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.ext.declarative import declarative_base
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_login import LoginManager, current_user
 
@@ -12,11 +12,10 @@ from flask_login import LoginManager, current_user
 logging.basicConfig(level=logging.DEBUG)
 
 # Tạo class Base cho SQLAlchemy
-class Base(DeclarativeBase):
-    pass
+Base = declarative_base()
 
 # Khởi tạo SQLAlchemy
-db = SQLAlchemy(model_class=Base)
+db = SQLAlchemy()
 
 # Tạo ứng dụng Flask
 app = Flask(__name__)
