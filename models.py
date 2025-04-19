@@ -89,6 +89,7 @@ class SanPham(db.Model):
     hinh_anh = db.Column(db.Text, nullable=True)  # Lưu dưới dạng base64 hoặc URL
     danh_muc_id = db.Column(db.Integer, db.ForeignKey('danh_muc.id'), nullable=True)
     nha_cung_cap_id = db.Column(db.Integer, db.ForeignKey('nha_cung_cap.id'), nullable=True)
+    hang_san_xuat_id = db.Column(db.Integer, db.ForeignKey('hang_san_xuat.id'), nullable=True)
     trang_thai = db.Column(db.Boolean, default=True)
     ngay_tao = db.Column(db.DateTime, default=datetime.now)
     
