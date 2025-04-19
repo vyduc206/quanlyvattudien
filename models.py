@@ -56,6 +56,23 @@ class NhaCungCap(db.Model):
     def __repr__(self):
         return f'<NhaCungCap {self.ten}>'
 
+class HangSanXuat(db.Model):
+    __tablename__ = 'hang_san_xuat'
+
+    id = db.Column(db.Integer, primary_key=True)
+    ten = db.Column(db.String(100), nullable=False)
+    quoc_gia = db.Column(db.String(100), nullable=True)
+    website = db.Column(db.String(200), nullable=True)
+    mo_ta = db.Column(db.Text, nullable=True)
+    logo = db.Column(db.Text, nullable=True)  # Lưu dưới dạng base64 hoặc URL
+    trang_thai = db.Column(db.Boolean, default=True)
+    ngay_tao = db.Column(db.DateTime, default=datetime.now)
+
+    san_pham = db.relationship('SanPham', backref='hang_san_xuat', lazy=True)
+
+    def __repr__(self):
+        return f'<HangSanXuat {self.ten}>'
+
 class SanPham(db.Model):
     __tablename__ = 'san_pham'
     
