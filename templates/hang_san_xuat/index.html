@@ -1,0 +1,56 @@
+{% extends 'layout.html' %}
+
+{% block title %}Quản lý hãng sản xuất{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Quản lý hãng sản xuất</h2>
+        <a href="{{ url_for('hang_san_xuat.them') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Thêm hãng mới
+        </a>
+    </div>
+
+    {% include 'includes/flash_messages.html' %}
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên hãng</th>
+                            <th>Quốc gia</th>
+                            <th>Website</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for hang in hangs %}
+                        <tr>
+                            <td>{{ hang.id }}</td>
+                            <td>{{ hang.ten }}</td>
+                            <td>{{ hang.quoc_gia }}</td>
+                            <td>{{ hang.website }}</td>
+                            <td>
+                                <a href="{{ url_for('hang_san_xuat.sua', id=hang.id) }}" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{{ url_for('hang_san_xuat.xoa', id=hang.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa hãng sản xuất này?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center">Chưa có dữ liệu hãng sản xuất</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
