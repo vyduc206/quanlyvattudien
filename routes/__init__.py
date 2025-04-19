@@ -1,1 +1,2 @@
-# This file is required to make the routes directory a Python package
+from routes.hang_san_xuat import hang_san_xuat_bp
+app.register_blueprint(hang_san_xuat_bp)
