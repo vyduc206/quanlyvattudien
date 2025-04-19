@@ -67,13 +67,6 @@ app.register_blueprint(nha_cung_cap_bp)
 app.register_blueprint(danh_muc_bp)
 app.register_blueprint(bao_cao_bp)
 app.register_blueprint(hang_san_xuat_bp)
-app.register_blueprint(san_pham.bp)
-app.register_blueprint(nhap_kho.bp)
-app.register_blueprint(xuat_kho.bp)
-app.register_blueprint(nha_cung_cap.bp)
-app.register_blueprint(danh_muc.bp)
-app.register_blueprint(bao_cao.bp)
-app.register_blueprint(hang_san_xuat.hang_san_xuat_bp)
 
 @login_manager.user_loader
 def load_user(user_id):
