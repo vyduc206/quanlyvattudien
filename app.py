@@ -56,16 +56,24 @@ with app.app_context():
     db.create_all()
 
 # Import các routes
-from routes import auth, san_pham, nhap_kho, xuat_kho, nha_cung_cap, danh_muc, bao_cao
+from routes import auth_bp, san_pham_bp, nhap_kho_bp, xuat_kho_bp, nha_cung_cap_bp, danh_muc_bp, bao_cao_bp, hang_san_xuat_bp
 
 # Đăng ký các blueprint
-app.register_blueprint(auth.bp)
+app.register_blueprint(auth_bp)
+app.register_blueprint(san_pham_bp)
+app.register_blueprint(nhap_kho_bp)
+app.register_blueprint(xuat_kho_bp)
+app.register_blueprint(nha_cung_cap_bp)
+app.register_blueprint(danh_muc_bp)
+app.register_blueprint(bao_cao_bp)
+app.register_blueprint(hang_san_xuat_bp)
 app.register_blueprint(san_pham.bp)
 app.register_blueprint(nhap_kho.bp)
 app.register_blueprint(xuat_kho.bp)
 app.register_blueprint(nha_cung_cap.bp)
 app.register_blueprint(danh_muc.bp)
 app.register_blueprint(bao_cao.bp)
+app.register_blueprint(hang_san_xuat.hang_san_xuat_bp)
 
 @login_manager.user_loader
 def load_user(user_id):
